@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Birthday Cake — Blow to Blow Out</title>
+
+  <!-- Google font Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <!-- canvas-confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root { --text: #3b2e2e; }
+    *{box-sizing:border-box}
+    html,body,#root{height:100%;margin:0}
+    body{
+      font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #add8e6;
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+    .page { width:100%; max-width:1000px; padding:20px; text-align:center; }
+    .title { font-size:2.2rem; margin: 8px 0 18px; text-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+    .stage { display:flex; align-items:center; justify-content:center; gap: 60px; position:relative; height:420px; }
+    .side-img { width: 180px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .cake-wrapper{ display:flex; justify-content:center; flex:0 0 auto; }
+
+    /* Tuyết rơi */
+    .snowflake {
+      position: fixed;
+      top: -10px;
+      color: white;
+      pointer-events: none;
+      animation: fall linear infinite;
+    }
+    @keyframes fall { to { transform: translateY(100vh); } }
+
+    /* Popup */
+    .popup {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.7);
+      z-index:1000;
+    }
+    .popup-content {
+      background: white;
+      padding:30px;
+      border-radius:12px;
+      font-size:1.5rem;
+      color:#333;
+      max-width:500px;
+      text-align:center;
+      animation: popin 0.5s ease;
+    }
+    @keyframes popin { from {transform:scale(0.5); opacity:0;} to {transform:scale(1); opacity:1;} }
+
+    /* Cake */
+    .cake { position: relative; width:320px; height:220px; margin-top:10px; }
+    .plate { position:absolute; bottom:10px; left:-30px; width:380px; height:28px; background: linear-gradient(90deg,#f0e4d0,#ffe9d6); border-radius:14px; box-shadow: 0 8px 18px rgba(0,0,0,0.10); }
+    .layer { position:absolute; border-radius:14px; background: linear-gradient(180deg, #8b4513, #5c2e0e); box-shadow:0 6px 12px rgba(0,0,0,0.08);}
+    .layer-bottom { bottom:24px; left:40px; width:240px; height:76px; }
+    .layer-middle { bottom:96px; left:64px; width:200px; height:60px; }
+    .layer-top { bottom:150px; left:92px; width:140px; height:44px; }
+    .icing { position:absolute; background: linear-gradient(180deg,#ffffff,#fff7f0); border-radius:12px; box-shadow:0 3px 8px rgba(0,0,0,0.06);}
+    .icing-top{bottom:180px; left:92px; width:140px; height:20px;}
+    .icing-middle{bottom:138px; left:64px; width:200px;height:20px;}
+    .icing-bottom{bottom:84px; left:40px; width:240px;height:20px;}
+    .drip { position:absolute; background: linear-gradient(180deg,#ffffff,#fff7f0); border-radius:60%; box-shadow:0 3px 8px rgba(0,0,0,0.06);}
+    .drip1 { bottom:170px; left:110px; width:10px; height:15px;}
+    .drip2 { bottom:172px; left:118px; width:15px; height:10px;}
+    .drip3 { bottom:170px; left:192px; width:35px; height:20px;}
+    .drip4 { bottom:128px; left:70px; width:190px; height:20px;}
+    .drip5 { bottom:118px; left:60px; width:15px; height:30px;}
+    .drip6 { bottom:115px; left:245px; width:20px; height:40px;}
+    .drip7 { bottom:115px; left:140px; width:100px; height:40px;}
+    .drip8 { bottom:72px; left:50px; width:220px; height:25px;}
+    .drip9 { bottom:60px; left:60px; width:80px; height:30px;}
+    .drip10{ bottom:70px; left:50px; width:15px; height:20px;}
+    .candle { position:absolute; top:-50px; left:50%; transform:translateX(-50%); width:22px; height:86px; background:linear-gradient(180deg,#ffb6c1,#ff69b4); border-radius:6px; display:flex; justify-content:center; align-items:flex-start;}
+    .flame { margin-top:-12px; width:26px; height:40px; border-radius:50%; background: radial-gradient(circle at 40% 30%,#fff38a 0 18%,#ffd54a 21% 44%,#ff7a00 58% 74%,rgba(0,0,0,0) 80%); filter:drop-shadow(0 8px 12px rgba(255,160,0,0.18)); animation:flicker 180ms infinite; transition: opacity 220ms ease, transform 220ms ease;}
+    .flame.hidden { opacity:0 !important; transform:scale(0.6) translateY(6px) !important; animation:none !important;}
+    @keyframes flicker {0%{transform:translateY(0) scale(1); opacity:1;} 50%{transform:translateY(-3px) scale(1.06); opacity:0.92;} 100%{transform:translateY(0) scale(1); opacity:1;}}
+
+    .btn-music { margin-top:18px; padding:10px 18px; border-radius:8px; border:none; background:#ff7a47; color:white; font-weight:700; cursor:pointer;}
+    .hint { margin-top:14px; font-size:0.9rem; color:#5b4b4b; }
+  </style>
+</head>
+<body>
+  <div class="page" id="root">
+    <h1 class="title" style="font-style: italic">🎉 Chúc mừng sinh nhật! 🎂</h1>
+    <h1 class="title">Nhung béo</h1>
+
+    <div class="stage">
+      <img src="images/instc 2025-09-16 024735.629.jpeg" class="side-img" style="width:300px; transform: rotate(10deg);" alt="">
+      <div class="cake-wrapper">
+        <div class="cake" id="cake">
+          <div class="plate"></div>
+          <div class="layer layer-bottom"></div>
+          <div class="icing icing-bottom"></div>
+          <div class="layer layer-middle"></div>
+          <div class="drip drip1"></div>
+          <div class="drip drip2"></div>
+          <div class="drip drip3"></div>
+          <div class="drip drip4"></div>
+          <div class="drip drip5"></div>
+          <div class="drip drip6"></div>
+          <div class="drip drip7"></div>
+          <div class="drip drip8"></div>
+          <div class="drip drip9"></div>
+          <div class="drip drip10"></div>
+          <div class="icing icing-middle"></div>
+          <div class="layer layer-top"></div>
+          <div class="icing icing-top"></div>
+          <div class="candle" id="candle"><div class="flame" id="flame"></div></div>
+        </div>
+      </div>
+      <img src="images/instc 2025-09-16 024735.844.jpeg" class="side-img" style="width:300px; transform: rotate(-12deg)" alt="">
+    </div>
+
+    <!-- Popup lời chúc -->
+    <div id="popup" class="popup">
+      <div class="popup-content">
+        <p id="wish"></p>
+        <button id="close-popup" class="btn-music" style="margin-top:20px; display:none;">Chuyển cho em zai iu dấu</button>
+      </div>
+    </div>
+
+    <button id="btn-music" class="btn-music">Bật nhạc</button>
+    <button id="btn-mic" class="btn-music">Bật mic</button>
+    <p class="hint">(Nhớ bật nhạc để nghe cảm động, bật mic lên để thổi nến nhé bà trẻ!😜)</p>
+  </div>
+
+  <div class="snow"></div>
+
+  <audio id="bg-audio" src="public/song.mp3" loop></audio>
+
+  <script>
+    // Tuyết rơi
+    const snow = document.querySelector('.snow');
+    for(let i=0;i<50;i++){
+      let flake=document.createElement('div');
+      flake.className='snowflake';
+      flake.style.left=Math.random()*100+'vw';
+      flake.style.animationDuration=(Math.random()*3+2)+'s';
+      flake.style.fontSize=(Math.random()*10+10)+'px';
+      flake.innerHTML='❄';
+      snow.appendChild(flake);
+    }
+
+    // Gõ chữ từng ký tự
+    function typeWriter(text, element, speed=80, callback){
+      let i=0;
+      function typing(){
+        if(i<text.length){
+          element.innerHTML+=text.charAt(i);
+          i++;
+          setTimeout(typing,speed);
+        }else{
+          if(callback) callback();
+        }
+      }
+      typing();
+    }
+
+    const popup=document.getElementById("popup");
+    const wishEl=document.getElementById("wish");
+    const closeBtn=document.getElementById("close-popup");
+
+    function showPopup(){
+      popup.style.display="flex";
+      typeWriter(
+        "Nhân ngày thế giới đón chào 1 mụ phù thuỷ ra đời, tuy là 1 mụ xấu xa, đanh đá nhưng được cái khó tính, chúc cho mụ ta luôn yêu đời, mạnh khoẻ và tràn ngập yêu thương của gia đình để bớt xấu xa đi 😘",
+        wishEl,
+        80,
+        ()=>{ closeBtn.style.display="inline-block"; }
+      );
+    }
+
+    closeBtn.addEventListener('click',()=>{ popup.style.display='none'; });
+
+    // Mic & thổi nến
+    (function(){
+      const BLOW_THRESHOLD=0.15, BLOW_COOLDOWN=2500;
+      const flameEl=document.getElementById('flame');
+      const audioEl=document.getElementById('bg-audio');
+      const btnMusic=document.getElementById('btn-music');
+      const btnMic=document.getElementById('btn-mic');
+      let blown=false, micOn=false, stream=null;
+
+      // Nhạc
+      btnMusic.addEventListener('click', async()=>{
+        if(audioEl.paused){
+          try{ await audioEl.play(); btnMusic.textContent="Tắt nhạc"; }
+          catch(e){ console.warn(e); }
+        }else{ audioEl.pause(); btnMusic.textContent="Bật nhạc"; }
+      });
+
+      // Confetti ban đầu
+      for(let i=0;i<6;i++){
+        setTimeout(()=>{ confetti({particleCount:120,spread:70,startVelocity:36,origin:{y:0.2}}); }, i*280);
+      }
+
+      function computeRMS(bytes){
+        let sum=0;
+        for(let i=0;i<bytes.length;i++){
+          const v=(bytes[i]-128)/128; sum+=v*v;
+        }
+        return Math.sqrt(sum/bytes.length);
+      }
+
+      async function startBlowDetector(onBlow){
+        try{
+          stream=await navigator.mediaDevices.getUserMedia({audio:true});
+          const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+          const source=audioCtx.createMediaStreamSource(stream);
+          const analyser=audioCtx.createAnalyser();
+          analyser.fftSize=2048;
+          source.connect(analyser);
+          const dataArray=new Uint8Array(analyser.fftSize);
+          let lastBlow=0;
+          function tick(){
+            analyser.getByteTimeDomainData(dataArray);
+            const rms=computeRMS(dataArray);
+            const now=Date.now();
+            if(!blown && rms>BLOW_THRESHOLD && (now-lastBlow)>BLOW_COOLDOWN){
+              lastBlow=now; onBlow(rms);
+            }
+            if(micOn) requestAnimationFrame(tick);
+          }
+          tick();
+        }catch(e){ console.warn("Mic không khả dụng", e); }
+      }
+
+      function stopBlowDetector(){ if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } }
+
+      function handleBlow(){
+        blown=true;
+        flameEl.classList.add("hidden");
+        confetti({ particleCount:90, spread:80, startVelocity:40, origin:{y:0.35} });
+        if(!audioEl.paused){ const v=audioEl.volume; audioEl.volume=Math.max(0,v*0.4); setTimeout(()=>audioEl.volume=v,1800); }
+        setTimeout(() => {showPopup();}, 2000);
+      }
+
+      btnMic.addEventListener('click',()=>{
+        if(!micOn){ micOn=true; btnMic.textContent="Tắt mic"; startBlowDetector(handleBlow); }
+        else{ micOn=false; btnMic.textContent="Bật mic"; stopBlowDetector(); }
+      });
+
+    })();
+  </script>
+</body>
+</html>
